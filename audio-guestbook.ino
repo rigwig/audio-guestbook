@@ -87,6 +87,8 @@ unsigned long Subchunk2Size = 0L;
 unsigned long recByteSaved = 0L;
 unsigned long NumSamples = 0L;
 byte byte1, byte2, byte3, byte4;
+unsigned long recordingStartTime = 0; // Variable to store the start time of recording
+
 
 
 void setup() {
@@ -114,7 +116,7 @@ void setup() {
   sgtl5000_1.volume(0.95);
 
   mixer.gain(0, 1.0f);
-  mixer.gain(1, 1.0f);
+  mixer.gain(1, 3.0f);
 
   // Play a beep to indicate system is online
   waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
@@ -211,6 +213,7 @@ void loop() {
       waveform1.amplitude(0);
       // Start the recording function
       startRecording();
+      recordingStartTime = millis(); // Store the start time of recording
       break;
 
     case Mode::Recording:
@@ -224,6 +227,13 @@ void loop() {
         end_Beep();
       }
       else {
+         // Check if recording exceeds 2 minutes
+        if (millis() - recordingStartTime > 120000) { // 120000 milliseconds = 2 minutes
+          Serial.println("Recording exceeded 2 minutes, stopping...");
+          stopRecording();
+          end_Beep();
+          break;
+        }
         continueRecording();
       }
       break;
